@@ -16,11 +16,12 @@ import java.util.Random;
 
 public class Server {
 	
-	private Map<String, String> userEmail = new HashMap<>();
-	private Map<String, String> userName = new HashMap<>();
-	private Map<String, String> xp = new HashMap<>();
-	private ArrayList<String> pool = new ArrayList<>();
-	private String ghost = null;
+	private Map<String, String> userEmail = new HashMap<>(); //从邮箱得知名字
+	private Map<String, String> userName = new HashMap<>(); //从名字得知邮箱
+	private Map<String, String> xp = new HashMap<>(); //XP列表，key是邮箱，element是名字
+	private ArrayList<String> pool = new ArrayList<>(); //玩家邮箱列表，用于抽取
+	private String ghost = null; //鬼的邮箱
+	private String death = "n"; //本轮死者
 	
 	Map<String, String> getUserEmail(){
 		return userEmail;
@@ -36,6 +37,14 @@ public class Server {
 	
 	ArrayList<String> getPool(){
 		return pool;
+	}
+	
+	String getDeath() {
+		return death;
+	}
+	
+	void resetDeath(String string) {
+		death = string;
 	}
 	
 	//get and analyze email
@@ -74,6 +83,11 @@ public class Server {
                 		| message.getSubject().equals("XP")) {
                 	xp.put(fromEmail, text);
                 	pool.add(fromEmail);
+                }
+                else if(message.getSubject().equals("杀人")) {
+                	if(fromEmail.equals(ghost)) {
+                		death = text;
+                	}
                 }
                 else {
                 	continue;
@@ -114,13 +128,13 @@ public class Server {
 	}
 	
 	String poll() {
-		ghost = pool.get(new Random().nextInt(pool.size()-1));
+		ghost = pool.get(new Random().nextInt(pool.size()));
 		return xp.get(ghost);
 	}
 	
 	boolean check(String name) {
 		String email = userName.get(name);
-		if(name.equals(ghost)) {
+		if(email.equals(ghost)) {
 			return true;
 		}
 		else {

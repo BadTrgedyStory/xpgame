@@ -14,13 +14,14 @@ public class Main {
 	private static JTextField inputField;
     private static JTextArea outputArea;
     private static JTextArea people;
+    private static JTextArea resultCheck;
     
     public static void main(String[] args) {
     	Server server = new Server();
         //frame
-        JFrame frame = new JFrame("XP Gusser");
+        JFrame frame = new JFrame("XP Guesser");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 400);
+        frame.setSize(400, 500);
 
         //panel
         JPanel panel = new JPanel();
@@ -36,6 +37,7 @@ public class Main {
         panel.setLayout(null);
         
         people = new JTextArea();
+        people.setLineWrap(true);
         people.setBounds(120, 20, 150, 50);
         panel.add(people);
 
@@ -59,22 +61,34 @@ public class Main {
         extractButton.setBounds(10, 80, 80, 25);
         extractButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                outputArea.setText("抽取到的字符串");
+                outputArea.setText(server.poll());
             }
         });
         panel.add(extractButton);
 
         outputArea = new JTextArea();
+        outputArea.setLineWrap(true);
         outputArea.setBounds(120, 80, 250, 100);
         panel.add(outputArea);
-
+        
+        resultCheck = new JTextArea();
+        resultCheck.setLineWrap(true);
+        resultCheck.setBounds(10, 265, 250, 100);
+	    panel.add(resultCheck);
+        
         // 检查按钮和输入框
-        JButton checkButton = new JButton("检查");
+        JButton checkButton = new JButton("投票");
         checkButton.setBounds(10, 195, 80, 25);
         checkButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String inputText = inputField.getText();
-                // 在这里处理输入框中的内容
+                String input = inputField.getText();
+                if(server.check(input)) {
+                	resultCheck.setText("答案正确!");
+                }
+                else {
+                	resultCheck.setText("答案错误\n" + input + "的xp是：" + 
+                server.getXp().get(server.getUserName().get(input)));
+                }
             }
         });
         panel.add(checkButton);
@@ -82,11 +96,43 @@ public class Main {
         inputField = new JTextField(20);
         inputField.setBounds(100, 195, 165, 25);
         panel.add(inputField);
+        
+        //杀人按钮
+        JButton killButton = new JButton("杀人");
+        killButton.setBounds(10, 230, 80, 25);
+        killButton.addActionListener(new ActionListener(){
+        	public void actionPerformed(ActionEvent e) {
+        		server.server();
+        		StringBuilder result = new StringBuilder();
+        		if(server.getDeath().equals("n")) {
+        			resultCheck.setText("目前本轮无人伤亡");
+        		}
+        		else {
+        		result.append("昨晚被杀的人是：");
+        		result.append(server.getDeath());
+        		result.append("\n");
+        		result.append("他的xp是：");
+        		result.append(server.getXp().get(server.getUserName().get(server.getDeath())));
+        		resultCheck.setText(result.toString());
+        		server.resetDeath("n");
+        		}
+        	}
+        });
+        panel.add(killButton);
 
         // 新游戏按钮
         JButton newGameButton = new JButton("新游戏");
-        newGameButton.setBounds(10, 230, 100, 25);
-        // 在这里添加新游戏的逻辑
+        newGameButton.setBounds(10, 380, 100, 25);
+        newGameButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	server.Reset();
+                people.setText("");
+                outputArea.setText("");
+                resultCheck.setText("");
+                inputField.setText("");
+                
+            }
+        });
         panel.add(newGameButton);
     }
 }
